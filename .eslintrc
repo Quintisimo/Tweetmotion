@@ -1,0 +1,40 @@
+{
+  // parser
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "jsx": true,
+    "useJSXTextNode": true
+  },
+  // Using the recommended linting rules for typescript and react
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended"
+  ],
+  // Using typescript plugin and react hooks
+  "plugins": ["@typescript-eslint", "react-hooks"],
+  "rules": {
+    // React hooks rules
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    // Use interfaces instead of prop-types
+    "react/prop-types": "off",
+
+    "@typescript-eslint/camelcase": "off",
+    // Use newline for each element in interface
+    "@typescript-eslint/member-delimiter-style": [
+      "error",
+      {
+        "multiline": {
+          "delimiter": "none",
+          "requireLast": true
+        }
+      }
+    ]
+  },
+  "settings": {
+    "react": {
+      // Use project's version of react
+      "version": "detect"
+    }
+  }
+}
