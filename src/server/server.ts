@@ -2,22 +2,13 @@ import { join } from 'path'
 import Koa from 'koa'
 import Router from 'koa-router'
 import serve from 'koa-static'
-import Twitter from 'twitter'
 
 const app = new Koa()
 const router = new Router()
-const client = new Twitter({
-  consumer_key: process.env.CONSUMER_KEY,
-  consumer_secret: process.env.CONSUMER_SECRET,
-  access_token_key: process.env.ACCESS_TOKEN_KEY,
-  access_token_secret: process.env.ACCESS_TOKEN_SECRET
-})
 
-router.get('/api/:search', async ctx => {
-  const search = ctx.params.search
-  const res = await client.get('search/tweets', { q: search })
-  ctx.body = res
-})
+const search = require('./routes/search');
+
+router.use('/api', search.routes());
 
 app.use(router.routes()).use(router.allowedMethods())
 
