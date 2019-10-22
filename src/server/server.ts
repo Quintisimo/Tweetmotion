@@ -6,9 +6,9 @@ import serve from 'koa-static'
 const app = new Koa()
 const router = new Router()
 
-const search = require('./routes/search');
+const search = require('./routes/search')
 
-router.use('/api', search.routes());
+router.use('/api', search.routes())
 
 app.use(router.routes()).use(router.allowedMethods())
 
