@@ -1,7 +1,7 @@
 import React, { useState, FC } from 'react'
 
 const App: FC = () => {
-  const [server, setServer] = useState({})
+  const [server, setServer] = useState([])
   const [text, setText] = useState('')
 
   return (
@@ -23,11 +23,22 @@ const App: FC = () => {
             .then(res => res.json())
             .then(text => setServer(text))
             .catch(err =>
-              setServer(`Could not connect to server: ${err.message}`)
+              setServer([])
             )
         }}
       />
-      <pre>{JSON.stringify(server, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(server, null, 2)}</pre> */}
+      {server.length >0 ? server.map((tweet: any) => {
+        return(
+          <div key = {tweet.tweetId}>
+            Tweet : {tweet.text} <br />
+            Sentiment {tweet.sentiment}<br />
+            Words : {tweet.sanitizedWords.toString()}<br />
+            <hr/>
+          </div>
+
+        )
+      }) : null}
     </div>
   )
 }
