@@ -6,7 +6,7 @@ const App: FC = () => {
   const [server, setServer] = useState([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState('')
   const [clicked, setClicked] = useState(false)
   const [lastUpdated, setLastUpdate] = useState<Date>(null)
 
@@ -28,7 +28,7 @@ const App: FC = () => {
         )
         setLastUpdate(new Date())
       } catch (error) {
-        setError(true)
+        setError(error)
       } finally {
         setLoading(false)
       }
@@ -82,7 +82,7 @@ const App: FC = () => {
           }}
           onClick={(): void => {
             setClicked(true)
-            setError(false)
+            setError('')
             setLoading(true)
             fetchTweets()
           }}
@@ -91,9 +91,7 @@ const App: FC = () => {
       {lastUpdated && (
         <h3 style={style}>Last Updated {lastUpdated.toLocaleTimeString()}</h3>
       )}
-      {error ? (
-        <h1 style={style}>Error</h1>
-      ) : loading ? (
+      {loading ? (
         <h1 style={style}>Loading</h1>
       ) : (
         server.length > 0 && (
@@ -130,6 +128,7 @@ const App: FC = () => {
           </LineChart>
         )
       )}
+      {error.length > 0 && <h1>Error Fetching new data {error}</h1>}
     </div>
   )
 }

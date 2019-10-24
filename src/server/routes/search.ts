@@ -72,25 +72,31 @@ const getSanitizedWords = (tokenizeTweet: string[]): string[] =>
     })
 
 router.get('/:search', async ctx => {
-  const search = ctx.params.search
-  const res = await client.get('search/tweets', { q: search })
+  try {
+    const search = ctx.params.search
+    const res = await client.get('search/tweets', { q: search })
 
-  ctx.body = res.statuses.map((status: any) => {
-    //Separate words in a tweet
-    const tokenizeTweet = tokenizer.tokenize(status.text)
+    ctx.body = res.statuses.map((status: any) => {
+      //Separate words in a tweet
+      const tokenizeTweet = tokenizer.tokenize(status.text)
 
-    //attach sentiment value to a tweet
-    status.sentiment = getSentiment(tokenizeTweet)
+      //attach sentiment value to a tweet
+      status.sentiment = getSentiment(tokenizeTweet)
 
-    //attach sanitized words to a tweet
-    status.sanitizedWords = getSanitizedWords(tokenizeTweet)
-    return {
-      text: status.text,
-      tweetId: status.id,
-      userName: status.user.name,
-      userScreenName: status.user.screen_name,
-      sentiment: status.sentiment,
-      sanitizedWords: status.sanitizedWords
+      //attach sanitized words to a tweet
+      status.sanitizedWords = getSanitizedWords(tokenizeTweet)
+      return {
+        text: status.text,
+        tweetId: status.id,
+        userName: status.user.name,
+        userScreenName: status.user.screen_name,
+        sentiment: status.sentiment,
+        sanitizedWords: status.sanitizedWords
+      }
+    })
+  } catch (error) {
+    if (error.code === 88) {
+      ctx.body = 'Rate Limit Exceeded'
     }
-  })
+  }
 })
