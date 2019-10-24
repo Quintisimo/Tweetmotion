@@ -1,14 +1,11 @@
 import { join } from 'path'
 import Koa from 'koa'
-import Router from 'koa-router'
 import serve from 'koa-static'
+import { router } from './routes/search'
 
 const app = new Koa()
-const router = new Router()
 
-const search = require('./routes/search')
-
-router.use('/api', search.routes())
+router.use('/api', router.routes())
 
 app.use(router.routes()).use(router.allowedMethods())
 

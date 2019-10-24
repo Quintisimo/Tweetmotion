@@ -1,22 +1,20 @@
 import Router from 'koa-router'
 import Twitter from 'twitter'
+import { WordTokenizer, NounInflector } from 'natural'
+import { removeStopwords } from 'stopword'
+import checkWord from 'check-word'
+import checkName from 'people-names'
+import { getCode } from 'country-list'
+import worldMapData from 'city-state-country'
 
-const natural = require('natural')
 const Analyzer = require('natural').SentimentAnalyzer
 const stemmer = require('natural').PorterStemmer
-
-const stopword = require('stopword')
-const checkWord = require('check-word')
 const words = checkWord('en')
-const checkName = require('people-names')
-const { getCode } = require('country-list')
-const worldMapData = require('city-state-country')
-
-const tokenizer = new natural.WordTokenizer()
-const nounInflector = new natural.NounInflector()
+const tokenizer = new WordTokenizer()
+const nounInflector = new NounInflector()
 const sentimentAnalyzer = new Analyzer('English', stemmer, 'afinn')
 
-const router = new Router()
+export const router = new Router()
 
 const client = new Twitter({
   consumer_key: process.env.CONSUMER_KEY,
@@ -25,72 +23,30 @@ const client = new Twitter({
   access_token_secret: process.env.ACCESS_TOKEN_SECRET
 })
 
-
-
-router.get('/:search', async ctx => {
-  const search = ctx.params.search
-  const res = await client.get('search/tweets', { q: search })
-
-  res.statuses.forEach((status: any) => {
-    //Separate words in a tweet
-    const tokenizeTweet = tokenizer.tokenize(status.text)
-    
-    //attach sentiment value to a tweet
-    status.sentiment = getSentiment(tokenizeTweet);
-    
-    //attach sanitized words to a tweet
-    status.sanitizedWords = getSanitizedWords(tokenizeTweet);
-
-  })
-
-  const statusDisplay = res.statuses.map((status: any) => {
-    return {
-      text: status.text,
-      tweetId: status.id,
-      userName: status.user.name,
-      userScreenName: status.user.screen_name,
-      sentiment: status.sentiment,
-      sanitizedWords: status.sanitizedWords,
-    }
-  })
-
-  ctx.body = statusDisplay
-})
-
 /**
- * 
+ *
  * Get sentiment from a tokenize Tweet
  */
-const getSentiment = (tokenizeTweet: any) => {
+const getSentiment = (tokenizeTweet: string[]): number =>
   //find sentiment of a tweet
-  const sentiment = sentimentAnalyzer.getSentiment(tokenizeTweet);
-  return sentiment;
-}
+  sentimentAnalyzer.getSentiment(tokenizeTweet)
 
 /**
- * 
+ *
  * Sanitize a tweet
  */
-const getSanitizedWords = (tokenizeTweet: any) => {
+const getSanitizedWords = (tokenizeTweet: string[]): string[] =>
   //Remove stop word (we,I,us,this,that,etc)
-  const removeStopWord = stopword.removeStopwords(tokenizeTweet)
-
-  //remove 2 letters word
-  const removeTwoLetter = removeStopWord.filter(
-    (word: string) => word.length > 2
-  )
-
-  //to lower case
-  const lowerCases = removeTwoLetter.map((word: string) => {
-    return word.toLowerCase()
-  })
-
-  //convert every word to singular
-  const singulars = lowerCases.map((word: string) =>
-    nounInflector.singularize(word)
-  )
-
-  /*
+  removeStopwords(tokenizeTweet)
+    //remove 2 letters word
+    .filter((word: string) => word.length > 2)
+    //to lower case
+    .map((word: string) => {
+      return word.toLowerCase()
+    })
+    //convert every word to singular
+    .map((word: string) => nounInflector.singularize(word))
+    /*
   Filter based on :
   1. English word OR
   2. Common person name OR
@@ -99,7 +55,6 @@ const getSanitizedWords = (tokenizeTweet: any) => {
   
   And then mapped to get the city name's country
   */
-  const sanitizedWords = singulars
     .filter(
       (word: string) =>
         words.check(word) ||
@@ -108,11 +63,7 @@ const getSanitizedWords = (tokenizeTweet: any) => {
         worldMapData.searchCity(word).length > 0
     )
     .map((word: string) => {
-      if (
-        words.check(word) ||
-        checkName.isPersonName(word) ||
-        getCode(word)
-      ) {
+      if (words.check(word) || checkName.isPersonName(word) || getCode(word)) {
         return word
       } else {
         const city = worldMapData.searchCity(word)
@@ -120,8 +71,26 @@ const getSanitizedWords = (tokenizeTweet: any) => {
       }
     })
 
-    return sanitizedWords;
-}
+router.get('/:search', async ctx => {
+  const search = ctx.params.search
+  const res = await client.get('search/tweets', { q: search })
 
+  ctx.body = res.statuses.map((status: any) => {
+    //Separate words in a tweet
+    const tokenizeTweet = tokenizer.tokenize(status.text)
 
-module.exports = router
+    //attach sentiment value to a tweet
+    status.sentiment = getSentiment(tokenizeTweet)
+
+    //attach sanitized words to a tweet
+    status.sanitizedWords = getSanitizedWords(tokenizeTweet)
+    return {
+      text: status.text,
+      tweetId: status.id,
+      userName: status.user.name,
+      userScreenName: status.user.screen_name,
+      sentiment: status.sentiment,
+      sanitizedWords: status.sanitizedWords
+    }
+  })
+})
