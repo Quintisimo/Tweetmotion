@@ -1,5 +1,5 @@
-import React, { useState, FC } from 'react'
-import { BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip } from 'recharts'
+import React, { useState, FC, CSSProperties } from 'react'
+import { LineChart, CartesianGrid, XAxis, YAxis, Line, Tooltip } from 'recharts'
 import useInterval from '@use-it/interval'
 
 const App: FC = () => {
@@ -9,6 +9,12 @@ const App: FC = () => {
   const [error, setError] = useState(false)
   const [clicked, setClicked] = useState(false)
   const [lastUpdated, setLastUpdate] = useState<Date>(null)
+
+  const style: CSSProperties = {
+    fontFamily: 'sans-serif',
+    textAlign: 'center',
+    fontSize: '20px'
+  }
 
   const fetchTweets = async (): Promise<void> => {
     if (text.length) {
@@ -38,59 +44,90 @@ const App: FC = () => {
 
   return (
     <div>
-      <input
-        type="text"
-        value={text}
-        onChange={(e): void => {
-          e.preventDefault()
-          e.stopPropagation()
-          setText(e.target.value)
+      <div
+        style={{
+          height: '40px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
         }}
-      />
-      <input
-        type="submit"
-        value="Submit"
-        onClick={(): void => {
-          setClicked(true)
-          setError(false)
-          setLoading(true)
-          fetchTweets()
-        }}
-      />
-      {lastUpdated && <h3>Last Updated {lastUpdated.toLocaleTimeString()}</h3>}
+      >
+        <input
+          type="text"
+          value={text}
+          style={{
+            outline: 'none',
+            border: '1px solid black',
+            padding: '5px',
+            width: '80%',
+            height: '100%',
+            fontSize: '20px'
+          }}
+          onChange={(e): void => {
+            e.preventDefault()
+            e.stopPropagation()
+            setText(e.target.value)
+          }}
+        />
+        <input
+          type="submit"
+          value="Submit"
+          style={{
+            outline: 'none',
+            border: '1px solid black',
+            background: 'lightblue',
+            margin: '10px',
+            height: '100%',
+            ...style
+          }}
+          onClick={(): void => {
+            setClicked(true)
+            setError(false)
+            setLoading(true)
+            fetchTweets()
+          }}
+        />
+      </div>
+      {lastUpdated && (
+        <h3 style={style}>Last Updated {lastUpdated.toLocaleTimeString()}</h3>
+      )}
       {error ? (
-        <h1>Error</h1>
+        <h1 style={style}>Error</h1>
       ) : loading ? (
-        <h1>Loading</h1>
+        <h1 style={style}>Loading</h1>
       ) : (
         server.length > 0 && (
-          <BarChart
+          <LineChart
             width={1000}
             height={500}
+            margin={{ left: 20, bottom: 20 }}
+            style={{
+              margin: 'auto'
+            }}
             data={server
               .filter(e => e.sentiment !== 0)
               .map(e => ({
                 name: e.userScreenName,
                 sentiment: e.sentiment
               }))}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="name"
-              label={{ value: 'Users', position: 'bottom' }}
+              label={{ value: 'Users', position: 'insideBottom', offset: -10 }}
             />
 
             <YAxis
               label={{
                 value: 'Sentiment',
                 angle: -90,
-                position: 'insideLeft'
+                position: 'insideLeft',
+                offset: -10
               }}
             />
             <Tooltip />
-            <Bar dataKey="sentiment" fill="#8884d8" />
-          </BarChart>
+            <Line dataKey="sentiment" stroke="#8884d8" />
+          </LineChart>
         )
       )}
     </div>
