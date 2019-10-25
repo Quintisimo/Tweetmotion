@@ -1,5 +1,3 @@
-import Router from 'koa-router'
-import Twitter from 'twitter'
 import { WordTokenizer, NounInflector } from 'natural'
 import { removeStopwords } from 'stopword'
 import checkWord from 'check-word'
@@ -13,15 +11,6 @@ const words = checkWord('en')
 const tokenizer = new WordTokenizer()
 const nounInflector = new NounInflector()
 const sentimentAnalyzer = new Analyzer('English', stemmer, 'afinn')
-
-export const router = new Router()
-
-const client = new Twitter({
-  consumer_key: process.env.CONSUMER_KEY,
-  consumer_secret: process.env.CONSUMER_SECRET,
-  access_token_key: process.env.ACCESS_TOKEN_KEY,
-  access_token_secret: process.env.ACCESS_TOKEN_SECRET
-})
 
 /**
  *
@@ -71,32 +60,22 @@ const getSanitizedWords = (tokenizeTweet: string[]): string[] =>
       }
     })
 
-router.get('/:search', async ctx => {
-  try {
-    const search = ctx.params.search
-    const res = await client.get('search/tweets', { q: search })
+export const analyseTweets = (tweets: any[]): any[] =>
+  tweets.map((status: any) => {
+    //Separate words in a tweet
+    const tokenizeTweet = tokenizer.tokenize(status.text)
 
-    ctx.body = res.statuses.map((status: any) => {
-      //Separate words in a tweet
-      const tokenizeTweet = tokenizer.tokenize(status.text)
+    //attach sentiment value to a tweet
+    status.sentiment = getSentiment(tokenizeTweet)
 
-      //attach sentiment value to a tweet
-      status.sentiment = getSentiment(tokenizeTweet)
-
-      //attach sanitized words to a tweet
-      status.sanitizedWords = getSanitizedWords(tokenizeTweet)
-      return {
-        text: status.text,
-        tweetId: status.id,
-        userName: status.user.name,
-        userScreenName: status.user.screen_name,
-        sentiment: status.sentiment,
-        sanitizedWords: status.sanitizedWords
-      }
-    })
-  } catch (error) {
-    if (error.code === 88) {
-      ctx.body = 'Rate Limit Exceeded'
+    //attach sanitized words to a tweet
+    status.sanitizedWords = getSanitizedWords(tokenizeTweet)
+    return {
+      text: status.text,
+      tweetId: status.id,
+      userName: status.user.name,
+      userScreenName: status.user.screen_name,
+      sentiment: status.sentiment,
+      sanitizedWords: status.sanitizedWords
     }
-  }
-})
+  })
