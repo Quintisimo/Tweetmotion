@@ -17,17 +17,12 @@ const App: FC = () => {
     fontSize: '20px'
   }
 
-  const fetchTweets = async (): Promise<void> => {
+  const fetchTweets = async (type: 'initial' | 'update'): Promise<void> => {
     if (text.length) {
       try {
-        const res = await fetch(`/api/${encodeURIComponent(text)}`)
+        const res = await fetch(`/api/${type}/${encodeURIComponent(text)}`)
         const json: TweetAnalysed[] = await res.json()
-        console.log(json)
-        setServer(prevTweets =>
-          [...json, ...prevTweets].filter(
-            (e, i, arr) => i === arr.findIndex(t => t.id === e.id)
-          )
-        )
+        setServer(json)
         setLastUpdate(new Date())
       } catch (error) {
         setError(error)
@@ -40,9 +35,9 @@ const App: FC = () => {
   useInterval(() => {
     if (clicked && !loading) {
       console.log('Fetching new tweets')
-      fetchTweets()
+      fetchTweets('update')
     }
-  }, 60000)
+  }, 5000)
 
   return (
     <div>
@@ -86,7 +81,7 @@ const App: FC = () => {
             setClicked(true)
             setError('')
             setLoading(true)
-            fetchTweets()
+            fetchTweets('initial')
           }}
         />
       </div>

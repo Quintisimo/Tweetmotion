@@ -16,7 +16,6 @@ const twitter = new Twitter({
   access_token_key: process.env.ACCESS_TOKEN_KEY,
   access_token_secret: process.env.ACCESS_TOKEN_SECRET
 })
-let search = ''
 
 const redis = createClient()
 const getCachedTweets: (key: string) => Promise<string> = promisify(
@@ -25,9 +24,9 @@ const getCachedTweets: (key: string) => Promise<string> = promisify(
 
 redis.on('error', err => console.error('Redis Error', err))
 
-router.get('/api/:search', async ctx => {
+router.get('/api/initial/:search', async ctx => {
   try {
-    search = ctx.params.search
+    const search: string = ctx.params.search
     if (search.length) {
       const result = await getCachedTweets(search)
       if (result) {
@@ -46,15 +45,8 @@ router.get('/api/:search', async ctx => {
   }
 })
 
-app.use(router.routes()).use(router.allowedMethods())
-
-if (process.env.NODE_ENV === 'production') {
-  app.use(serve(join(__dirname, '../client-build')))
-}
-
-app.listen(5000)
-
-setInterval(async () => {
+router.get('/api/update/:search', async ctx => {
+  const search: string = ctx.params.search
   if (search.length) {
     const result = await getCachedTweets(search)
     const res = await twitter.get('search/tweets', { q: search })
@@ -64,5 +56,14 @@ setInterval(async () => {
       (e, i, arr) => i === arr.findIndex(t => t.id === e.id)
     )
     redis.setex(search, 3600, JSON.stringify(uninqueTweets))
+    ctx.body = uninqueTweets
   }
-}, 10000)
+})
+
+app.use(router.routes()).use(router.allowedMethods())
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(serve(join(__dirname, '../client-build')))
+}
+
+app.listen(5000)
