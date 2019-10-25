@@ -71,6 +71,14 @@ const getSanitizedWords = (tokenizeTweet: string[]): string[] =>
       }
     })
 
+const getCountries = (words:string[]):string[] => {
+  let countries = [];
+  words.forEach((word: string) => {
+    if (getCode(word)) countries.push(word.toUpperCase());
+  });
+  return countries;
+}
+
 router.get('/:search', async ctx => {
   try {
     const search = ctx.params.search
@@ -85,13 +93,18 @@ router.get('/:search', async ctx => {
 
       //attach sanitized words to a tweet
       status.sanitizedWords = getSanitizedWords(tokenizeTweet)
+
+      status.countries = getCountries(status.sanitizedWords);
+      console.log(status.countries);
+
       return {
         text: status.text,
         tweetId: status.id,
         userName: status.user.name,
         userScreenName: status.user.screen_name,
         sentiment: status.sentiment,
-        sanitizedWords: status.sanitizedWords
+        sanitizedWords: status.sanitizedWords,
+        countries: status.countries,
       }
     })
   } catch (error) {

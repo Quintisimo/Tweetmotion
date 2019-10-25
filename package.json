@@ -57,6 +57,7 @@
     "koa-static": "^5.0.0",
     "natural": "^0.6.3",
     "people-names": "^1.0.15",
+    "react-wordcloud": "^1.1.1",
     "stopword": "^0.3.3",
     "twitter": "^1.7.1"
   }
