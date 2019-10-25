@@ -21,6 +21,14 @@ const getSentiment = (tokenizeTweet: string[]): number =>
   //find sentiment of a tweet
   sentimentAnalyzer.getSentiment(tokenizeTweet)
 
+  const getCountries = (words:string[]):string[] => {
+    let countries = [];
+    words.forEach((word: string) => {
+      if (getCode(word)) countries.push(word.toUpperCase());
+    });
+    return countries;
+  }
+
 /**
  *
  * Sanitize a tweet
@@ -69,14 +77,18 @@ export const analyseTweets = (tweets: TweetAPI[]): TweetAnalysed[] =>
     //attach sentiment value to a tweet
     status.sentiment = getSentiment(tokenizeTweet)
 
+  
     //attach sanitized words to a tweet
     status.sanitizedWords = getSanitizedWords(tokenizeTweet)
+
+    status.countries = getCountries(status.sanitizedWords)
     return {
       id: status.id,
       text: status.text,
       userName: status.user.name,
       userScreenName: status.user.screen_name,
       sentiment: status.sentiment,
-      sanitizedWords: status.sanitizedWords
+      sanitizedWords: status.sanitizedWords,
+      countries : status.countries,
     }
   })

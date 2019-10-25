@@ -5,6 +5,7 @@ interface Tweet {
   userScreenName: string
   sentiment: number
   sanitizedWords: string[]
+  countries : any
 }
 
 export interface TweetAPI extends Tweet {
