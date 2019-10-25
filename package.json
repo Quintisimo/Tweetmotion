@@ -21,6 +21,7 @@
     "@types/react": "^16.9.4",
     "@types/react-dom": "^16.9.1",
     "@types/recharts": "^1.8.0",
+    "@types/redis": "^2.8.14",
     "@types/twitter": "^1.7.0",
     "@types/webpack": "^4.39.2",
     "@types/webpack-dev-server": "^3.1.7",
@@ -57,6 +58,7 @@
     "koa-static": "^5.0.0",
     "natural": "^0.6.3",
     "people-names": "^1.0.15",
+    "redis": "^2.8.0",
     "stopword": "^0.3.3",
     "twitter": "^1.7.1"
   }

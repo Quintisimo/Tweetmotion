@@ -1,9 +1,10 @@
 import React, { useState, FC, CSSProperties } from 'react'
 import { LineChart, CartesianGrid, XAxis, YAxis, Line, Tooltip } from 'recharts'
 import useInterval from '@use-it/interval'
+import { TweetAnalysed } from '../../interfaces'
 
 const App: FC = () => {
-  const [server, setServer] = useState([])
+  const [server, setServer] = useState<TweetAnalysed[]>([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -20,10 +21,11 @@ const App: FC = () => {
     if (text.length) {
       try {
         const res = await fetch(`/api/${encodeURIComponent(text)}`)
-        const json = await res.json()
+        const json: TweetAnalysed[] = await res.json()
+        console.log(json)
         setServer(prevTweets =>
           [...json, ...prevTweets].filter(
-            (e, i, arr) => i === arr.findIndex(t => t.tweetId === e.tweetId)
+            (e, i, arr) => i === arr.findIndex(t => t.id === e.id)
           )
         )
         setLastUpdate(new Date())
@@ -40,7 +42,7 @@ const App: FC = () => {
       console.log('Fetching new tweets')
       fetchTweets()
     }
-  }, 3000)
+  }, 60000)
 
   return (
     <div>

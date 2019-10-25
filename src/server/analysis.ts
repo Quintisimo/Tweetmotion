@@ -4,6 +4,7 @@ import checkWord from 'check-word'
 import checkName from 'people-names'
 import { getCode } from 'country-list'
 import worldMapData from 'city-state-country'
+import { TweetAPI, TweetAnalysed } from '../interfaces'
 
 const Analyzer = require('natural').SentimentAnalyzer
 const stemmer = require('natural').PorterStemmer
@@ -60,8 +61,8 @@ const getSanitizedWords = (tokenizeTweet: string[]): string[] =>
       }
     })
 
-export const analyseTweets = (tweets: any[]): any[] =>
-  tweets.map((status: any) => {
+export const analyseTweets = (tweets: TweetAPI[]): TweetAnalysed[] =>
+  tweets.map(status => {
     //Separate words in a tweet
     const tokenizeTweet = tokenizer.tokenize(status.text)
 
@@ -71,8 +72,8 @@ export const analyseTweets = (tweets: any[]): any[] =>
     //attach sanitized words to a tweet
     status.sanitizedWords = getSanitizedWords(tokenizeTweet)
     return {
+      id: status.id,
       text: status.text,
-      tweetId: status.id,
       userName: status.user.name,
       userScreenName: status.user.screen_name,
       sentiment: status.sentiment,
