@@ -1,6 +1,5 @@
-import React, { useState, useEffect, memo, FC } from 'react'
+import React, { useState, useEffect, memo, FC, CSSProperties } from 'react'
 import ReactWordcloud, { Word } from 'react-wordcloud'
-import { TweetAnalysed, Country } from '../../interfaces'
 import {
   ContentRenderer,
   PieLabelRenderProps,
@@ -17,6 +16,13 @@ import {
   Legend,
   Bar
 } from 'recharts'
+import { TweetAnalysed, Country } from '../../interfaces'
+
+export const style: CSSProperties = {
+  fontFamily: 'sans-serif',
+  textAlign: 'center',
+  fontSize: '20px'
+}
 
 interface Props {
   server: TweetAnalysed[]
@@ -126,59 +132,69 @@ const Graphs: FC<Props> = ({ server }) => {
         alignItems: 'centre'
       }}
     >
-      <LineChart
-        width={(window.innerWidth - 20) / 2}
-        height={(window.innerHeight - 20) / 3}
-        margin={{ left: 20, bottom: 20 }}
-        data={server
-          .filter(e => e.sentiment !== 0)
-          .map(e => ({
-            name: e.userScreenName,
-            sentiment: e.sentiment
-          }))}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis
-          dataKey="name"
-          label={{
-            value: 'Users',
-            position: 'insideBottom',
-            offset: -10
-          }}
-        />
-
-        <YAxis
-          label={{
-            value: 'Sentiment',
-            angle: -90,
-            position: 'insideLeft'
-          }}
-        />
-        <Tooltip />
-        <Line dataKey="sentiment" stroke="#8884d8" />
-      </LineChart>
-
-      <PieChart
-        width={(window.innerWidth - 20) / 2}
-        height={(window.innerHeight - 20) / 3}
-      >
-        <Pie
-          data={sentimentData}
-          fill="#8884d8"
-          nameKey="name"
-          dataKey="value"
-          labelLine={false}
-          label={renderCustomizedLabel}
+      <div>
+        <h2 style={style}>Sentimental Response</h2>
+        <LineChart
+          width={(window.innerWidth - 20) / 2}
+          height={(window.innerHeight - 20) / 3}
+          margin={{ left: 20, bottom: 20 }}
+          data={server
+            .filter(e => e.sentiment !== 0)
+            .map(e => ({
+              name: e.userScreenName,
+              sentiment: e.sentiment
+            }))}
         >
-          {sentimentData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-          <Tooltip />
-        </Pie>
-        <Tooltip />
-      </PieChart>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="name"
+            label={{
+              value: 'Users',
+              position: 'insideBottom',
+              offset: -10
+            }}
+          />
 
-      {countriesData.length > 0 && (
+          <YAxis
+            label={{
+              value: 'Sentiment',
+              angle: -90,
+              position: 'insideLeft'
+            }}
+          />
+          <Tooltip />
+          <Line dataKey="sentiment" stroke="#8884d8" />
+        </LineChart>
+      </div>
+
+      <div>
+        <h2 style={style}>Overall Emotion Response</h2>
+        <PieChart
+          width={(window.innerWidth - 20) / 2}
+          height={(window.innerHeight - 20) / 3}
+        >
+          <Pie
+            data={sentimentData}
+            fill="#8884d8"
+            nameKey="name"
+            dataKey="value"
+            labelLine={false}
+            label={renderCustomizedLabel}
+          >
+            {sentimentData.map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+            <Tooltip />
+          </Pie>
+          <Tooltip />
+        </PieChart>
+      </div>
+
+      <div>
+        <h2 style={style}>Country of Origin</h2>
         <BarChart
           width={(window.innerWidth - 20) / 2}
           height={(window.innerHeight - 20) / 3}
@@ -210,12 +226,15 @@ const Graphs: FC<Props> = ({ server }) => {
           <Legend align="right" />
           <Bar dataKey="num" fill="#8884d8" />
         </BarChart>
-      )}
+      </div>
 
-      <ReactWordcloud
-        size={[(window.innerWidth - 20) / 2, (window.innerHeight - 20) / 3]}
-        words={wordsData}
-      />
+      <div>
+        <h2 style={style}>Most Used Words</h2>
+        <ReactWordcloud
+          size={[(window.innerWidth - 20) / 2, (window.innerHeight - 20) / 3]}
+          words={wordsData}
+        />
+      </div>
     </div>
   )
 }

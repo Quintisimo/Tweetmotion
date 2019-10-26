@@ -1,6 +1,6 @@
-import React, { useState, FC, CSSProperties } from 'react'
+import React, { useState, FC } from 'react'
 import useInterval from '@use-it/interval'
-import Graphs from './Graphs'
+import Graphs, { style } from './Graphs'
 import { TweetAnalysed } from '../../interfaces'
 
 const App: FC = () => {
@@ -10,12 +10,6 @@ const App: FC = () => {
   const [error, setError] = useState('')
   const [clicked, setClicked] = useState(false)
   const [lastUpdated, setLastUpdate] = useState<Date>(null)
-
-  const style: CSSProperties = {
-    fontFamily: 'sans-serif',
-    textAlign: 'center',
-    fontSize: '20px'
-  }
 
   const fetchTweets = async (type: 'initial' | 'update'): Promise<void> => {
     if (text.length) {
@@ -41,12 +35,22 @@ const App: FC = () => {
 
   return (
     <div>
-      <div
+      <form
         style={{
           height: '40px',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center'
+        }}
+        onSubmit={(e): void => {
+          e.preventDefault()
+          e.stopPropagation()
+          if (text.length) {
+            setClicked(true)
+            setError('')
+            setLoading(true)
+            fetchTweets('initial')
+          }
         }}
       >
         <input
@@ -60,11 +64,7 @@ const App: FC = () => {
             height: '100%',
             fontSize: '20px'
           }}
-          onChange={(e): void => {
-            e.preventDefault()
-            e.stopPropagation()
-            setText(e.target.value)
-          }}
+          onChange={(e): void => setText(e.target.value)}
         />
         <input
           type="submit"
@@ -77,14 +77,8 @@ const App: FC = () => {
             height: '100%',
             ...style
           }}
-          onClick={(): void => {
-            setClicked(true)
-            setError('')
-            setLoading(true)
-            fetchTweets('initial')
-          }}
         />
-      </div>
+      </form>
       {lastUpdated && (
         <h3 style={style}>Last Updated {lastUpdated.toLocaleTimeString()}</h3>
       )}

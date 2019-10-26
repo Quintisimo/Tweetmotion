@@ -17,7 +17,10 @@ const twitter = new Twitter({
   access_token_secret: process.env.ACCESS_TOKEN_SECRET
 })
 
-const redis = createClient()
+const redis = createClient({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: 6379
+})
 const getCachedTweets: (key: string) => Promise<string> = promisify(
   redis.get
 ).bind(redis)
