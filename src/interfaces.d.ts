@@ -5,7 +5,7 @@ interface Tweet {
   userScreenName: string
   sentiment: number
   sanitizedWords: string[]
-  countries : any
+  countries: any
 }
 
 export interface TweetAPI extends Tweet {
@@ -18,4 +18,9 @@ export interface TweetAPI extends Tweet {
 export interface TweetAnalysed extends Tweet {
   userName: string
   userScreenName: string
+}
+
+export interface Country {
+  name: string
+  num: number
 }
