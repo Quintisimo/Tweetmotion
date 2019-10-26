@@ -1,5 +1,5 @@
 {
-  "name": "emotion-loc",
+  "name": "tweetmotion",
   "version": "1.0.0",
   "description": "Sort twitter tweets by emotion",
   "scripts": {
@@ -50,6 +50,7 @@
     "webpack-dev-server": "^3.8.1"
   },
   "dependencies": {
+    "aws-sdk": "^2.556.0",
     "check-word": "^1.1.0",
     "city-state-country": "^1.0.1",
     "country-list": "^2.2.0",

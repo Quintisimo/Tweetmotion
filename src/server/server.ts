@@ -1,10 +1,10 @@
-import { promisify } from 'util'
 import { join } from 'path'
 import Koa from 'koa'
 import Router from 'koa-router'
 import serve from 'koa-static'
 import Twitter from 'twitter'
-import { createClient } from 'redis'
+import { getStoredTweets, setStoredTweets } from './bucket'
+import { getCachedTweets, setCachedTweets } from './redis'
 import { analyseTweets } from './analysis'
 import { TweetAnalysed } from '../interfaces'
 
@@ -17,28 +17,27 @@ const twitter = new Twitter({
   access_token_secret: process.env.ACCESS_TOKEN_SECRET
 })
 
-const redis = createClient({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: 6379
-})
-const getCachedTweets: (key: string) => Promise<string> = promisify(
-  redis.get
-).bind(redis)
-
-redis.on('error', err => console.error('Redis Error', err))
-
 router.get('/api/initial/:search', async ctx => {
   try {
     const search: string = ctx.params.search
     if (search.length) {
-      const result = await getCachedTweets(search)
-      if (result) {
-        ctx.body = result
+      const cachedTweets = await getCachedTweets(search)
+
+      if (cachedTweets) {
+        ctx.body = JSON.parse(cachedTweets)
       } else {
-        const res = await twitter.get('search/tweets', { q: search })
-        const tweets = analyseTweets(res.statuses)
-        redis.setex(search, 3600, JSON.stringify(tweets))
-        ctx.body = analyseTweets(res.statuses)
+        const storedTweets = await getStoredTweets(search)
+
+        if (storedTweets) {
+          ctx.body = JSON.parse(storedTweets)
+          await setCachedTweets(search, storedTweets)
+        } else {
+          const res = await twitter.get('search/tweets', { q: search })
+          const tweets = analyseTweets(res.statuses)
+          ctx.body = analyseTweets(res.statuses)
+          await setStoredTweets(search, JSON.stringify(tweets))
+          await setCachedTweets(search, JSON.stringify(tweets))
+        }
       }
     }
   } catch (error) {
@@ -51,14 +50,17 @@ router.get('/api/initial/:search', async ctx => {
 router.get('/api/update/:search', async ctx => {
   const search: string = ctx.params.search
   if (search.length) {
-    const result = await getCachedTweets(search)
+    const storedReq = await getStoredTweets(search)
+    const cachedReq = await getCachedTweets(search)
     const res = await twitter.get('search/tweets', { q: search })
     const tweets = analyseTweets(res.statuses)
-    const cachedTweets: TweetAnalysed[] = JSON.parse(result || '[]')
-    const uninqueTweets = [...cachedTweets, ...tweets].filter(
+    const storedTweets: TweetAnalysed[] = JSON.parse(storedReq || '[]')
+    const cachedTweets: TweetAnalysed[] = JSON.parse(cachedReq || '[]')
+    const uninqueTweets = [...storedTweets, ...cachedTweets, ...tweets].filter(
       (e, i, arr) => i === arr.findIndex(t => t.id === e.id)
     )
-    redis.setex(search, 3600, JSON.stringify(uninqueTweets))
+    await setStoredTweets(search, JSON.stringify(uninqueTweets))
+    await setCachedTweets(search, JSON.stringify(uninqueTweets))
     ctx.body = uninqueTweets
   }
 })
