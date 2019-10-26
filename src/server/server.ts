@@ -43,25 +43,33 @@ router.get('/api/initial/:search', async ctx => {
   } catch (error) {
     if (error.code === 88) {
       ctx.body = 'Rate Limit Exceeded'
+    } else {
+      ctx.body = []
     }
   }
 })
 
 router.get('/api/update/:search', async ctx => {
-  const search: string = ctx.params.search
-  if (search.length) {
-    const storedReq = await getStoredTweets(search)
-    const cachedReq = await getCachedTweets(search)
-    const res = await twitter.get('search/tweets', { q: search })
-    const tweets = analyseTweets(res.statuses)
-    const storedTweets: TweetAnalysed[] = JSON.parse(storedReq || '[]')
-    const cachedTweets: TweetAnalysed[] = JSON.parse(cachedReq || '[]')
-    const uninqueTweets = [...storedTweets, ...cachedTweets, ...tweets].filter(
-      (e, i, arr) => i === arr.findIndex(t => t.id === e.id)
-    )
-    await setStoredTweets(search, JSON.stringify(uninqueTweets))
-    await setCachedTweets(search, JSON.stringify(uninqueTweets))
-    ctx.body = uninqueTweets
+  try {
+    const search: string = ctx.params.search
+    if (search.length) {
+      const storedReq = await getStoredTweets(search)
+      const cachedReq = await getCachedTweets(search)
+      const res = await twitter.get('search/tweets', { q: search })
+      const tweets = analyseTweets(res.statuses)
+      const storedTweets: TweetAnalysed[] = JSON.parse(storedReq || '[]')
+      const cachedTweets: TweetAnalysed[] = JSON.parse(cachedReq || '[]')
+      const uninqueTweets = [
+        ...storedTweets,
+        ...cachedTweets,
+        ...tweets
+      ].filter((e, i, arr) => i === arr.findIndex(t => t.id === e.id))
+      await setStoredTweets(search, JSON.stringify(uninqueTweets))
+      await setCachedTweets(search, JSON.stringify(uninqueTweets))
+      ctx.body = uninqueTweets
+    }
+  } catch (error) {
+    ctx.body = []
   }
 })
 
