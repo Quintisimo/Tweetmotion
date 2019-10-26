@@ -7,7 +7,7 @@ const App: FC = () => {
   const [server, setServer] = useState<TweetAnalysed[]>([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(false)
   const [clicked, setClicked] = useState(false)
   const [lastUpdated, setLastUpdate] = useState<Date>(null)
 
@@ -19,7 +19,7 @@ const App: FC = () => {
         setServer(json)
         setLastUpdate(new Date())
       } catch (error) {
-        setError(error)
+        setError(true)
       } finally {
         setLoading(false)
       }
@@ -35,6 +35,10 @@ const App: FC = () => {
 
   return (
     <div>
+      <h1 style={{ ...style, fontSize: '60px', margin: 0 }}>Tweetmotion</h1>
+      <p style={{ ...style, fontSize: '20px' }}>
+        Twitter&apos;s Emotional Response
+      </p>
       <form
         style={{
           height: '40px',
@@ -47,7 +51,7 @@ const App: FC = () => {
           e.stopPropagation()
           if (text.length) {
             setClicked(true)
-            setError('')
+            setError(false)
             setLoading(true)
             fetchTweets('initial')
           }
@@ -82,12 +86,14 @@ const App: FC = () => {
       {lastUpdated && (
         <h3 style={style}>Last Updated {lastUpdated.toLocaleTimeString()}</h3>
       )}
+      {error && (
+        <h1 style={style}>Error Fetching new data, please try again later</h1>
+      )}
       {loading ? (
         <h1 style={style}>Loading</h1>
       ) : (
         server.length > 0 && <Graphs server={server} />
       )}
-      {error.length > 0 && <h1>Error Fetching new data {error}</h1>}
     </div>
   )
 }

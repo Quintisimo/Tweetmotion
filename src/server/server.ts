@@ -41,10 +41,11 @@ router.get('/api/initial/:search', async ctx => {
       }
     }
   } catch (error) {
+    console.error(error)
     if (error.code === 88) {
       ctx.body = 'Rate Limit Exceeded'
     } else {
-      ctx.body = []
+      ctx.status = 500
     }
   }
 })
@@ -69,7 +70,8 @@ router.get('/api/update/:search', async ctx => {
       ctx.body = uninqueTweets
     }
   } catch (error) {
-    ctx.body = []
+    console.error(error)
+    ctx.status = 500
   }
 })
 

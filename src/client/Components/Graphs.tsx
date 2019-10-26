@@ -200,8 +200,6 @@ const Graphs: FC<Props> = ({ server }) => {
           height={(window.innerHeight - 20) / 3}
           data={countriesData}
           margin={{
-            top: 5,
-            right: 30,
             left: 20,
             bottom: 5
           }}
