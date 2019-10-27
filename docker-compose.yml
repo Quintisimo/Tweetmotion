@@ -6,6 +6,7 @@ services:
       - .env
     ports:
       - 80:5000
+    restart: always
     environment:
       - REDIS_HOST=redis
       - NODE_ENV=production
@@ -15,3 +16,4 @@ services:
 
   redis:
     image: redis
+    restart: always
