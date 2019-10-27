@@ -1,28 +1,63 @@
-import { S3 } from 'aws-sdk'
+import {
+  SharedKeyCredential,
+  ServiceURL,
+  ContainerURL,
+  StorageURL,
+  Aborter,
+  BlobURL,
+  BlockBlobURL
+} from '@azure/storage-blob'
 
-const Bucket = `tweetmotion`
-const apiVersion = '2006-03-01'
-const s3 = new S3({ apiVersion })
+const account = 'tweetmotion'
+const accountKey = process.env.ACCOUNT_KEY
+const sharedKeyCredentials = new SharedKeyCredential(account, accountKey)
+const pipeline = StorageURL.newPipeline(sharedKeyCredentials)
+const serviceUrl = new ServiceURL(
+  `https://${account}.blob.core.windows.net`,
+  pipeline
+)
 
-const createBuket = s3
-  .createBucket({
-    Bucket
+const containerName = 'tweets'
+const containerUrl = ContainerURL.fromServiceURL(serviceUrl, containerName)
+const createContainer = containerUrl.create(Aborter.none)
+
+async function streamToString(
+  readableStream: NodeJS.ReadableStream
+): Promise<string> {
+  return new Promise((resolve, reject): void => {
+    const chunks = []
+    readableStream.on('data', data => {
+      chunks.push(data.toString())
+    })
+    readableStream.on('end', () => {
+      resolve(chunks.join(''))
+    })
+    readableStream.on('error', reject)
   })
-  .promise()
+}
 
-export const getStoredTweets = async (Key: string): Promise<string> => {
-  await createBuket
+export const getStoredTweets = async (key: string): Promise<string> => {
+  await createContainer.catch(err => {
+    if (err.code === 'ContainerAlreadyExists') Promise.resolve()
+  })
   try {
-    const req = await s3.getObject({ Bucket, Key }).promise()
-    return req.Body as string
+    const url = BlobURL.fromContainerURL(containerUrl, key)
+    const req = await url.download(Aborter.none, 0)
+    const res = await streamToString(req.readableStreamBody)
+    return res
   } catch (error) {
-    if (error.code === 'NoSuchKey') return null
+    if (error.status === 404) return null
   }
 }
 
 export const setStoredTweets = async (
-  Key: string,
-  Body: string
+  key: string,
+  body: string
 ): Promise<void> => {
-  await s3.putObject({ Bucket, Key, Body }).promise()
+  await createContainer.catch(err => {
+    if (err.code === 'ContainerAlreadyExists') Promise.resolve()
+  })
+  const url = BlobURL.fromContainerURL(containerUrl, key)
+  const blockUrl = BlockBlobURL.fromBlobURL(url)
+  await blockUrl.upload(Aborter.none, body, body.length)
 }
