@@ -31,7 +31,7 @@
     "awesome-typescript-loader": "^5.2.1",
     "concurrently": "^4.1.2",
     "dotenv": "^8.1.0",
-    "eslint": "^6.5.0",
+    "eslint": "^10.1.0",
     "eslint-loader": "^3.0.2",
     "eslint-plugin-react": "^7.14.3",
     "eslint-plugin-react-hooks": "^2.1.1",
